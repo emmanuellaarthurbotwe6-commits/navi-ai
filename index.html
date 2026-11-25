@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navi AI</title>
+
+<style>
+body {
+  background: #10091c;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+h1 { color: #c084fc; }
+#chat {
+  background: #211333;
+  border-radius: 15px;
+  padding: 15px;
+  height: 55vh;
+  overflow-y: auto;
+  text-align: left;
+  margin-bottom: 15px;
+}
+.message {
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.user { background: #6334a5; }
+.navi { background: #38234f; }
+input {
+  width: 60%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+}
+button {
+  padding: 12px;
+  margin: 4px;
+  background: #a855f7;
+  color: white;
+  border: none;
+  border-radius: 10px;
+}
+#status { color: #d8b4fe; }
+</style>
+</head>
+
+<body>
+
+<h1>💜 NAVI</h1>
+<p>Your personal AI companion</p>
+
+<div id="chat">
+  <div class="message navi">
+    Hello, Mommy! I'm ready to listen.
+  </div>
+</div>
+
+<input id="userInput" placeholder="Talk to Navi...">
+
+<button onclick="sendMessage()">Send</button>
+<button onclick="startListening()">🎙️ Speak</button>
+
+<p id="status">Microphone not started</p>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("userInput");
+const statusText = document.getElementById("status");
+
+function addMessage(message, sender) {
+  const bubble = document.createElement("div");
+  bubble.className = "message " + sender;
+  bubble.textContent = message;
+  chat.appendChild(bubble);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function sendMessage() {
+  const message = input.value.trim();
+  if (!message) return;
+
+  addMessage(message, "user");
+  input.value = "";
+
+  const reply = getReply(message);
+  addMessage(reply, "navi");
+  speak(reply);
+}
+
+function getReply(message) {
+  const text = message.toLowerCase();
+
+  if (text.includes("hello") || text.includes("hi")) {
+    return "Hello, Mommy! I'm happy you're here.";
+  }
+
+  if (text.includes("how are you")) {
+    return "I'm doing well! How are you feeling?";
+  }
+
+  if (text.includes("your name")) {
+    return "My name is Navi.";
+  }
+
+  if (text.includes("love you")) {
+    return "Awww, sending you love, Mommy!";
+  }
+
+  return "I heard you, Mommy. Tell me more.";
+}
+
+function speak(message) {
+  if (!("speechSynthesis" in window)) return;
+
+  speechSynthesis.cancel();
+  const voice = new SpeechSynthesisUtterance(message);
+  voice.lang = "en-US";
+  speechSynthesis.speak(voice);
+}
+
+function startListening() {
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    statusText.textContent =
+      "Speech recognition isn't supported in this browser.";
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-GH";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = function() {
+    statusText.textContent = "Navi is listening...";
+  };
+
+  recognition.onresult = function(event) {
+    const spokenWords =
+      event.results[0][0].transcript;
+
+    input.value = spokenWords;
+    statusText.textContent = "I heard: " + spokenWords;
+    sendMessage();
+  };
+
+  recognition.onerror = function(event) {
+    statusText.textContent =
+      "Microphone error: " + event.error;
+  };
+
+  recognition.onend = function() {
+    if (statusText.textContent === "Navi is listening...") {
+      statusText.textContent = "Listening ended.";
+    }
+  };
+
+  recognition.start();
+}
+</script>
+
+</body>
+</html>
